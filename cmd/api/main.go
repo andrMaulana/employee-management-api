@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/andrMaulana/employee-management-api/internal/domain/department"
+	"github.com/andrMaulana/employee-management-api/internal/domain/location"
 	"github.com/andrMaulana/employee-management-api/internal/domain/position"
 	"github.com/andrMaulana/employee-management-api/internal/infrastucture/database"
 	"github.com/andrMaulana/employee-management-api/internal/interfaces/http"
@@ -27,6 +28,10 @@ func main() {
 	positionService := position.NewService(positionRepo)
 	positionHandler := http.NewPositionHandler(positionService)
 
+	// instace position
+	locationRepo := location.NewRepository(db)
+	locationService := location.NewService(locationRepo)
+	locationHandler := http.NewLocationHandler(locationService)
 	app := fiber.New()
 
 	// Public routes
@@ -52,6 +57,13 @@ func main() {
 	app.Get("/positions/:id", positionHandler.GetByID)
 	app.Put("/positions/:id", positionHandler.Update)
 	app.Delete("/positions/:id", positionHandler.Delete)
+
+	// Position routes
+	app.Post("/locations", locationHandler.Create)
+	app.Get("/locations", locationHandler.GetAll)
+	app.Get("/locations/:id", locationHandler.GetByID)
+	app.Put("/locations/:id", locationHandler.Update)
+	app.Delete("/locations/:id", locationHandler.Delete)
 
 	log.Fatal(app.Listen(":8080"))
 }
