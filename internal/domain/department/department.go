@@ -17,7 +17,7 @@ type Department struct {
 }
 
 func (Department) TableName() string {
-	return "departments"
+	return "master_department"
 }
 
 func (Department) Scopes() map[string]func(*gorm.DB) *gorm.DB {
