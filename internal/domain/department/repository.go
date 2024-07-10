@@ -103,7 +103,7 @@ func (r *repository) Update(ctx context.Context, department *Department) error {
 }
 
 func (r *repository) Delete(ctx context.Context, id uint) error {
-	result := r.db.WithContext(ctx).Model(&Department{}).Where("Department_id = ?", id).Update("deleted_at", time.Now())
+	result := r.db.WithContext(ctx).Model(&Department{}).Where("Department_id = ?", id).Update("Deleted_at", time.Now())
 	if result.Error != nil {
 		return result.Error
 	}
