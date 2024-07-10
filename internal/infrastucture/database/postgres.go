@@ -8,7 +8,7 @@ import (
 )
 
 func NewPostgresDatabase() (*gorm.DB, error) {
-	dsn := "host=localhost user=postgres password=your_password dbname=employee_management port=5432 sslmode=disable TimeZone=Asia/Jakarta"
+	dsn := "host=localhost user=postgres password=postgres dbname=employee_management_db port=5432 sslmode=disable TimeZone=Asia/Jakarta"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
