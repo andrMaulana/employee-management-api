@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/andrMaulana/employee-management-api/internal/domain/department"
+	"github.com/andrMaulana/employee-management-api/internal/domain/position"
 	"github.com/andrMaulana/employee-management-api/internal/infrastucture/database"
 	"github.com/andrMaulana/employee-management-api/internal/interfaces/http"
 	"github.com/andrMaulana/employee-management-api/internal/interfaces/http/middleware"
@@ -16,9 +17,15 @@ func main() {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
+	// instace department
 	departmentRepo := department.NewRepository(db)
 	departmentService := department.NewService(departmentRepo)
 	departmentHandler := http.NewDepartmentHandler(departmentService)
+
+	// instace position
+	positionRepo := position.NewRepository(db)
+	positionService := position.NewService(positionRepo)
+	positionHandler := http.NewPositionHandler(positionService)
 
 	app := fiber.New()
 
@@ -38,6 +45,13 @@ func main() {
 	api.Post("/departments/batch", departmentHandler.BatchCreate)
 	api.Put("/departments/batch", departmentHandler.BatchUpdate)
 	api.Delete("/departments/batch", departmentHandler.BatchDelete)
+
+	// Position routes
+	app.Post("/positions", positionHandler.Create)
+	app.Get("/positions", positionHandler.GetAll)
+	app.Get("/positions/:id", positionHandler.GetByID)
+	app.Put("/positions/:id", positionHandler.Update)
+	app.Delete("/positions/:id", positionHandler.Delete)
 
 	log.Fatal(app.Listen(":8080"))
 }
