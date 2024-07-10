@@ -27,19 +27,3 @@ func (Department) Scopes() map[string]func(*gorm.DB) *gorm.DB {
 		},
 	}
 }
-
-// type Repository interface {
-// 	Create(department *Department) error
-// 	FindAll() ([]Department, error)
-// 	FindByID(id uint) (*Department, error)
-// 	Update(department *Department) error
-// 	Delete(id uint) error
-// }
-
-// type Service interface {
-// 	Create(department *Department) error
-// 	GetAll() ([]Department, error)
-// 	GetByID(id uint) (*Department, error)
-// 	Update(department *Department) error
-// 	Delete(id uint) error
-// }
