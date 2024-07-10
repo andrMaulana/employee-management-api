@@ -6,6 +6,7 @@ import (
 	"github.com/andrMaulana/employee-management-api/internal/domain/department"
 	"github.com/andrMaulana/employee-management-api/internal/infrastucture/database"
 	"github.com/andrMaulana/employee-management-api/internal/interfaces/http"
+	"github.com/andrMaulana/employee-management-api/internal/interfaces/http/middleware"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -21,18 +22,22 @@ func main() {
 
 	app := fiber.New()
 
-	// v1 := app.Group("/api/v1", middleware.AuthMiddleware())
+	// Public routes
+	// app.Post("/login", employeeHandler.Login)
+
+	// Protected routes
+	api := app.Group("/api/v1", middleware.AuthMiddleware())
 
 	// Department routes
 	app.Post("/departments", departmentHandler.Create)
-	app.Get("/departments", departmentHandler.GetAll)
-	app.Get("/departments/:id", departmentHandler.GetByID)
+	api.Get("/departments", departmentHandler.GetAll)
+	api.Get("/departments/:id", departmentHandler.GetByID)
 	app.Put("/departments/:id", departmentHandler.Update)
-	app.Delete("/departments/:id", departmentHandler.Delete)
+	api.Delete("/departments/:id", departmentHandler.Delete)
 
-	app.Post("/departments/batch", departmentHandler.BatchCreate)
-	app.Put("/departments/batch", departmentHandler.BatchUpdate)
-	app.Delete("/departments/batch", departmentHandler.BatchDelete)
+	api.Post("/departments/batch", departmentHandler.BatchCreate)
+	api.Put("/departments/batch", departmentHandler.BatchUpdate)
+	api.Delete("/departments/batch", departmentHandler.BatchDelete)
 
 	log.Fatal(app.Listen(":8080"))
 }
