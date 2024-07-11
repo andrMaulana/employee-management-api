@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func SetupRoutes(app *fiber.App, departmentHandler *handlers.DepartmentHandler, locationHandler *handlers.LocationHandler, positionHandler *handlers.PositionHandler, employeeHandler *handlers.EmployeeHandler, attendanceHandler *handlers.AttendanceHandler, reportHandler *handlers.ReportHandler, authHandler *handlers.AuthHandler) {
+func SetupRoutes(app *fiber.App, departmentHandler *handlers.DepartmentHandler, positionHandler *handlers.PositionHandler, locationHandler *handlers.LocationHandler, employeeHandler *handlers.EmployeeHandler, attendanceHandler *handlers.AttendanceHandler, reportHandler *handlers.ReportHandler, authHandler *handlers.AuthHandler) {
 
 	api := app.Group("/api")
 
@@ -23,7 +23,16 @@ func SetupRoutes(app *fiber.App, departmentHandler *handlers.DepartmentHandler, 
 	departments.Put("/:id", departmentHandler.UpdateDepartment)
 	departments.Delete("/:id", departmentHandler.DeleteDepartment)
 
-	// Position routes
+	// Positions routes
+	positions := api.Group("/positions")
+	positions.Use(middleware.AuthMiddleware())
+	positions.Post("/", positionHandler.CreatePosition)
+	positions.Get("/", positionHandler.GetAllPositions)
+	positions.Get("/:id", positionHandler.GetPositionByID)
+	positions.Put("/:id", positionHandler.UpdatePosition)
+	positions.Delete("/:id", positionHandler.DeletePosition)
+
+	// Locations routes
 	locations := api.Group("/locations")
 	locations.Use(middleware.AuthMiddleware())
 	locations.Post("/", locationHandler.CreateLocation)
@@ -34,7 +43,7 @@ func SetupRoutes(app *fiber.App, departmentHandler *handlers.DepartmentHandler, 
 
 	// Employee routes
 	employees := api.Group("/employees")
-	// employees.Use(middleware.AuthMiddleware())
+	employees.Use(middleware.AuthMiddleware())
 	employees.Post("/", employeeHandler.CreateEmployee)
 	employees.Get("/", employeeHandler.GetAllEmployees)
 	employees.Get("/:id", employeeHandler.GetEmployeeByID)
