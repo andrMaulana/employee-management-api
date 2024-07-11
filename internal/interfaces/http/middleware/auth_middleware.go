@@ -3,7 +3,7 @@ package middleware
 import (
 	"strings"
 
-	"github.com/andrMaulana/employee-management-api/pkg/auth"
+	"github.com/andrMaulana/employee-management-api/internal/infrastructure/auth"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -14,17 +14,19 @@ func AuthMiddleware() fiber.Handler {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing authorization header"})
 		}
 
-		bearerToken := strings.Split(authHeader, " ")
-		if len(bearerToken) != 2 {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token format"})
+		tokenParts := strings.Split(authHeader, " ")
+		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid authorization header format"})
 		}
 
-		claims, err := auth.ValidateJWT(bearerToken[1])
+		claims, err := auth.ValidateToken(tokenParts[1])
 		if err != nil {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid or expired token"})
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
 		}
 
 		c.Locals("employeeID", claims.EmployeeID)
+		c.Locals("username", claims.Username)
+
 		return c.Next()
 	}
 }

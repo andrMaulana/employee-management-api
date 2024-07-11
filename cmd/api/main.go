@@ -2,68 +2,83 @@ package main
 
 import (
 	"log"
+	"os"
 
+	"github.com/andrMaulana/employee-management-api/internal/application/services"
+	"github.com/andrMaulana/employee-management-api/internal/domain/attendance"
 	"github.com/andrMaulana/employee-management-api/internal/domain/department"
+	"github.com/andrMaulana/employee-management-api/internal/domain/employee"
 	"github.com/andrMaulana/employee-management-api/internal/domain/location"
 	"github.com/andrMaulana/employee-management-api/internal/domain/position"
-	"github.com/andrMaulana/employee-management-api/internal/infrastucture/database"
-	"github.com/andrMaulana/employee-management-api/internal/interfaces/http"
-	"github.com/andrMaulana/employee-management-api/internal/interfaces/http/middleware"
+	"github.com/andrMaulana/employee-management-api/internal/infrastructure/database"
+	"github.com/andrMaulana/employee-management-api/internal/interfaces/http/handlers"
+	"github.com/andrMaulana/employee-management-api/internal/interfaces/http/routes"
+	"github.com/andrMaulana/employee-management-api/pkg/logger"
 	"github.com/gofiber/fiber/v2"
+	"github.com/spf13/viper"
 )
 
-func main() {
-	db, err := database.NewPostgresDatabase()
-	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+func init() {
+	viper.SetConfigFile("configs/config.yaml")
+
+	// Read the config file
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("Error reading config file: %s", err)
 	}
 
-	// instace department
-	departmentRepo := department.NewRepository(db)
-	departmentService := department.NewService(departmentRepo)
-	departmentHandler := http.NewDepartmentHandler(departmentService)
+	viper.AutomaticEnv() // Automatically use environment variables where available
 
-	// instace position
-	positionRepo := position.NewRepository(db)
-	positionService := position.NewService(positionRepo)
-	positionHandler := http.NewPositionHandler(positionService)
+	// Set default values from .env file if environment variables are not set
+	viper.SetDefault("database.host", os.Getenv("DB_HOST"))
+	viper.SetDefault("database.port", os.Getenv("DB_PORT"))
+	viper.SetDefault("database.user", os.Getenv("DB_USER"))
+	viper.SetDefault("database.password", os.Getenv("DB_PASSWORD"))
+	viper.SetDefault("database.name", os.Getenv("DB_NAME"))
+	viper.SetDefault("jwt.secret", os.Getenv("JWT_SECRET"))
 
-	// instace position
-	locationRepo := location.NewRepository(db)
-	locationService := location.NewService(locationRepo)
-	locationHandler := http.NewLocationHandler(locationService)
+	logger.Init()
+}
+
+func main() {
 	app := fiber.New()
 
-	// Public routes
-	// app.Post("/login", employeeHandler.Login)
+	db := database.NewPostgresDatabase()
 
-	// Protected routes
-	api := app.Group("/api/v1", middleware.AuthMiddleware())
+	// Setup repositories
+	departmentRepo := department.NewRepository(db)
+	positionRepo := position.NewRepository(db)
+	locationRepo := location.NewRepository(db)
+	employeeRepo := employee.NewRepository(db)
+	attendanceRepo := attendance.NewRepository(db)
 
-	// Department routes
-	app.Post("/departments", departmentHandler.Create)
-	api.Get("/departments", departmentHandler.GetAll)
-	api.Get("/departments/:id", departmentHandler.GetByID)
-	app.Put("/departments/:id", departmentHandler.Update)
-	api.Delete("/departments/:id", departmentHandler.Delete)
+	// Setup services
+	departmentService := services.NewDepartmentService(departmentRepo)
+	positionService := services.NewPositionService(positionRepo)
+	locationService := services.NewLocationService(locationRepo)
+	employeeService := services.NewEmployeeService(employeeRepo)
+	attendanceService := services.NewAttendanceService(attendanceRepo)
+	reportService := services.NewReportService(attendanceRepo, employeeRepo, departmentRepo, positionRepo, locationRepo)
+	authService := services.NewAuthService(employeeRepo)
 
-	api.Post("/departments/batch", departmentHandler.BatchCreate)
-	api.Put("/departments/batch", departmentHandler.BatchUpdate)
-	api.Delete("/departments/batch", departmentHandler.BatchDelete)
+	// Setup handlers
+	departmentHandler := handlers.NewDepartmentHandler(departmentService)
+	positionHandler := handlers.NewPositionHandler(positionService)
+	locationHandler := handlers.NewLocationHandler(locationService)
+	employeeHandler := handlers.NewEmployeeHandler(employeeService)
+	attendanceHandler := handlers.NewAttendanceHandler(attendanceService)
+	reportHandler := handlers.NewReportHandler(reportService)
+	authHandler := handlers.NewAuthHandler(authService)
 
-	// Position routes
-	app.Post("/positions", positionHandler.Create)
-	app.Get("/positions", positionHandler.GetAll)
-	app.Get("/positions/:id", positionHandler.GetByID)
-	app.Put("/positions/:id", positionHandler.Update)
-	app.Delete("/positions/:id", positionHandler.Delete)
+	// Setup routes
+	routes.SetupRoutes(app, departmentHandler, locationHandler, positionHandler, employeeHandler, attendanceHandler, reportHandler, authHandler)
 
-	// Position routes
-	app.Post("/locations", locationHandler.Create)
-	app.Get("/locations", locationHandler.GetAll)
-	app.Get("/locations/:id", locationHandler.GetByID)
-	app.Put("/locations/:id", locationHandler.Update)
-	app.Delete("/locations/:id", locationHandler.Delete)
+	port := viper.GetString("server.port")
+	if port == "" {
+		port = "8080"
+	}
 
-	log.Fatal(app.Listen(":8080"))
+	logger.InfoLogger.Printf("Starting server on port %s", port)
+	if err := app.Listen(":" + port); err != nil {
+		logger.ErrorLogger.Fatalf("Error starting server: %s", err)
+	}
 }
