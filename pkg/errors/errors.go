@@ -9,5 +9,5 @@ var (
 	ErrUnauthorized       = errors.New("unauthorized")
 	ErrForbidden          = errors.New("forbidden")
 	ErrDuplicateResource  = errors.New("resource already exists")
-	ErrInvalidCredentials = errors.New("token not valid")
+	ErrInvalidCredentials = errors.New("invalid credentials")
 )
