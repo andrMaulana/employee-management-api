@@ -70,7 +70,7 @@ func main() {
 	authHandler := handlers.NewAuthHandler(authService)
 
 	// Setup routes
-	routes.SetupRoutes(app, departmentHandler, locationHandler, positionHandler, employeeHandler, attendanceHandler, reportHandler, authHandler)
+	routes.SetupRoutes(app, departmentHandler, positionHandler, locationHandler, employeeHandler, attendanceHandler, reportHandler, authHandler)
 
 	port := viper.GetString("server.port")
 	if port == "" {
