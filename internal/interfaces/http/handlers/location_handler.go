@@ -26,7 +26,10 @@ func (h *LocationHandler) CreateLocation(c *fiber.Ctx) error {
 	}
 
 	// TODO: Get the user from the context after implementing authentication
-	createdBy := "system"
+	createdBy, ok := c.Locals("username").(string)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "User information not found in the context"})
+	}
 
 	loc, err := h.service.CreateLocation(c.Context(), input.LocationName, createdBy)
 	if err != nil {
@@ -77,7 +80,10 @@ func (h *LocationHandler) UpdateLocation(c *fiber.Ctx) error {
 	}
 
 	// TODO: Get the user from the context after implementing authentication
-	updatedBy := "system"
+	updatedBy, ok := c.Locals("username").(string)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "User information not found in the context"})
+	}
 
 	loc, err := h.service.UpdateLocation(c.Context(), uint(id), input.LocationName, updatedBy)
 	if err != nil {
