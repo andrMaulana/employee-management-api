@@ -27,7 +27,10 @@ func (h *PositionHandler) CreatePosition(c *fiber.Ctx) error {
 	}
 
 	// TODO: Get the user from the context after implementing authentication
-	createdBy := "system"
+	createdBy, ok := c.Locals("username").(string)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "User information not found in the context"})
+	}
 
 	pos, err := h.service.CreatePosition(c.Context(), input.PositionName, input.DepartmentID, createdBy)
 	if err != nil {
@@ -79,7 +82,10 @@ func (h *PositionHandler) UpdatePosition(c *fiber.Ctx) error {
 	}
 
 	// TODO: Get the user from the context after implementing authentication
-	updatedBy := "system"
+	updatedBy, ok := c.Locals("username").(string)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "User information not found in the context"})
+	}
 
 	pos, err := h.service.UpdatePosition(c.Context(), uint(id), input.PositionName, input.DepartmentID, updatedBy)
 	if err != nil {
