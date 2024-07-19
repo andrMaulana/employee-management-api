@@ -26,7 +26,10 @@ func (h *DepartmentHandler) CreateDepartment(c *fiber.Ctx) error {
 	}
 
 	// TODO: Get the user from the context after implementing authentication
-	createdBy := "system"
+	createdBy, ok := c.Locals("username").(string) // Assuming the user information is a string
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "User information not found in the context"})
+	}
 
 	dept, err := h.service.CreateDepartment(c.Context(), input.DepartmentName, createdBy)
 	if err != nil {
@@ -63,6 +66,11 @@ func (h *DepartmentHandler) GetDepartmentByID(c *fiber.Ctx) error {
 }
 
 func (h *DepartmentHandler) UpdateDepartment(c *fiber.Ctx) error {
+	// Periksa apakah user sudah terotentikasi
+	if c.Locals("username") == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User not authenticated"})
+	}
+
 	id, err := strconv.ParseUint(c.Params("id"), 10, 32)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": errors.ErrInvalidInput.Error()})
@@ -77,7 +85,10 @@ func (h *DepartmentHandler) UpdateDepartment(c *fiber.Ctx) error {
 	}
 
 	// TODO: Get the user from the context after implementing authentication
-	updatedBy := "system"
+	updatedBy, ok := c.Locals("username").(string) // Assuming the user information is a string
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "User information not found in the context"})
+	}
 
 	dept, err := h.service.UpdateDepartment(c.Context(), uint(id), input.DepartmentName, updatedBy)
 	if err != nil {
