@@ -30,7 +30,10 @@ func (h *EmployeeHandler) CreateEmployee(c *fiber.Ctx) error {
 	}
 
 	// TODO: Get the user from the context after implementing authentication
-	createdBy := "system"
+	createdBy, ok := c.Locals("username").(string)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "User information not found in the context"})
+	}
 
 	emp, err := h.service.CreateEmployee(c.Context(), input.EmployeeName, input.Password, input.DepartmentID, input.PositionID, input.Superior, createdBy)
 	if err != nil {
@@ -84,7 +87,10 @@ func (h *EmployeeHandler) UpdateEmployee(c *fiber.Ctx) error {
 	}
 
 	// TODO: Get the user from the context after implementing authentication
-	updatedBy := "system"
+	updatedBy, ok := c.Locals("username").(string)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "User information not found in the context"})
+	}
 
 	emp, err := h.service.UpdateEmployee(c.Context(), uint(id), input.EmployeeName, input.DepartmentID, input.PositionID, input.Superior, updatedBy)
 	if err != nil {
