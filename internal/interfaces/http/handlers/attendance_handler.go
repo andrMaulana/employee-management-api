@@ -30,7 +30,10 @@ func (h *AttendanceHandler) CreateAttendance(c *fiber.Ctx) error {
 	}
 
 	// TODO: Get the user from the context after implementing authentication
-	createdBy := "system"
+	createdBy, ok := c.Locals("username").(string)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "User information not found in the context"})
+	}
 
 	att, err := h.service.CreateAttendance(c.Context(), input.EmployeeID, input.LocationID, input.AbsentIn, input.AbsentOut, createdBy)
 	if err != nil {
@@ -84,7 +87,10 @@ func (h *AttendanceHandler) UpdateAttendance(c *fiber.Ctx) error {
 	}
 
 	// TODO: Get the user from the context after implementing authentication
-	updatedBy := "system"
+	updatedBy, ok := c.Locals("username").(string)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "User information not found in the context"})
+	}
 
 	att, err := h.service.UpdateAttendance(c.Context(), uint(id), input.EmployeeID, input.LocationID, input.AbsentIn, input.AbsentOut, updatedBy)
 	if err != nil {
